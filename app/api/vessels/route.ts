@@ -10,7 +10,7 @@ const FALLBACK_VESSELS = [
 export async function GET() {
   const token = process.env.GFW_API_TOKEN;
   if (!token) {
-    return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback' });
+    return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback', tokenConfigured: false });
   }
 
   const startDate = new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -43,10 +43,10 @@ export async function GET() {
     const data = await response.json();
     const entries = data.entries ?? [];
     if (entries.length === 0) {
-      return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback', reason: 'no_events' });
+      return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback', reason: 'no_events', tokenConfigured: true });
     }
-    return NextResponse.json({ ...data, source: 'live' });
+    return NextResponse.json({ ...data, source: 'live', tokenConfigured: true });
   } catch {
-    return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback' });
+    return NextResponse.json({ entries: FALLBACK_VESSELS, source: 'fallback', tokenConfigured: true });
   }
 }

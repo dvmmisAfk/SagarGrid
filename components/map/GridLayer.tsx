@@ -8,6 +8,7 @@ import { useGridStore } from '@/store/gridStore';
 import { useBoatStore } from '@/store/boatStore';
 import { isBorderCell } from '@/lib/borderData';
 import { isLandCell } from '@/lib/landSea';
+import { getWeatherCells } from '@/lib/weatherData';
 import { interpolateWaveHeight, waveHeightToCellStatus } from '@/lib/realTimeWeather';
 import { useWeatherStore } from '@/store/weatherStore';
 import {
@@ -32,6 +33,7 @@ export default function GridLayer() {
     showBorderZone,
     showHazardMap,
     showWeatherOverlay,
+    weatherMode,
     setSelectedCell,
     setVisibleCellCount,
     setGridResolution,
@@ -40,6 +42,7 @@ export default function GridLayer() {
   const { boats } = useBoatStore();
   const { conditions } = useWeatherStore();
 
+  const simulatedWeather = useMemo(() => getWeatherCells(), []);
   const hazardCellList = useMemo(() => hazards.map((h) => h.cellIndex), [hazards]);
   const boatCells = useMemo(
     () => boats.map((b) => b.currentCell).filter(Boolean),
@@ -104,14 +107,37 @@ export default function GridLayer() {
 
         const isBorder = !isLand && showBorderZone && isBorderCell(cellIndex);
         const isHazard = !isLand && showHazardMap && cellInList(cellIndex, hazardCellList);
+
+        const isSimDanger =
+          !isLand &&
+          showWeatherOverlay &&
+          weatherMode === 'simulate' &&
+          cellInList(cellIndex, simulatedWeather.danger);
+        const isSimWatch =
+          !isLand &&
+          showWeatherOverlay &&
+          weatherMode === 'simulate' &&
+          cellInList(cellIndex, simulatedWeather.watch);
+        const isSimAdvisory =
+          !isLand &&
+          showWeatherOverlay &&
+          weatherMode === 'simulate' &&
+          cellInList(cellIndex, simulatedWeather.advisory);
+
         const waveHeight =
-          !isLand && conditions.length > 0
+          !isLand && weatherMode === 'realtime' && conditions.length > 0
             ? interpolateWaveHeight(lat, lng, conditions)
             : 0;
         const weatherStatus =
-          !isLand && showWeatherOverlay && conditions.length > 0
+          !isLand && showWeatherOverlay && weatherMode === 'realtime' && conditions.length > 0
             ? waveHeightToCellStatus(waveHeight)
-            : 'normal';
+            : isSimDanger
+              ? 'weather_danger'
+              : isSimWatch
+                ? 'weather_watch'
+                : isSimAdvisory
+                  ? 'weather_advisory'
+                  : 'normal';
         const hasBoat = !isLand && boatCells.some((bc) => cellsMatch(cellIndex, bc));
 
         let fill = '#1E4D7B';
@@ -144,8 +170,26 @@ export default function GridLayer() {
           stroke = '#FF3B30';
           strokeOp = 0.9;
           strokeW = 1.5;
+        } else if (isSimWatch) {
+          fill = '#FF9500';
+          fillOp = 0.22;
+          stroke = '#FF9500';
+          strokeOp = 0.7;
+          strokeW = 1;
+        } else if (isSimDanger) {
+          fill = '#FF3B30';
+          fillOp = 0.38;
+          stroke = '#FF3B30';
+          strokeOp = 1;
+          strokeW = 1.8;
+        } else if (isSimAdvisory) {
+          fill = '#FFD60A';
+          fillOp = 0.15;
+          stroke = '#FFD60A';
+          strokeOp = 0.6;
+          strokeW = 0.8;
         }
-        // Weather cell coloring handled by WeatherLayer overlay
+        // Realtime weather coloring handled by WeatherLayer overlay
 
         if (isHov && !isLand) {
           fillOp = Math.min(fillOp + 0.18, 0.55);

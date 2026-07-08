@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { Polygon, Tooltip } from 'react-leaflet';
+import { Circle, Marker, Polygon, Tooltip } from 'react-leaflet';
+import L from 'leaflet';
 import * as h3lib from 'h3-js';
 import { useUIStore } from '@/store/uiStore';
 import { useWeatherStore } from '@/store/weatherStore';
+import { CYCLONE_CENTER, CYCLONE_NAME } from '@/lib/weatherData';
 import {
   WEATHER_BOUNDS,
   interpolateWaveHeight,
@@ -14,15 +16,54 @@ import { getCellsInBoundingBox, getCellBoundaryLatLngs } from '@/lib/h3utils';
 
 const MAX_CELLS = 400;
 
-export default function WeatherLayer() {
-  const showWeatherOverlay = useUIStore((s) => s.showWeatherOverlay);
+const eyeIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    font-size:22px; line-height:28px; width:28px; height:28px; text-align:center;
+    animation:spin 4s linear infinite;
+  ">🌀</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
+function SimulatedWeatherLayer() {
+  const center: [number, number] = [CYCLONE_CENTER.lat, CYCLONE_CENTER.lng];
+
+  return (
+    <>
+      <Circle
+        center={center}
+        radius={220000}
+        pathOptions={{ color: '#FFD60A', weight: 0.5, fillColor: '#FFD60A', fillOpacity: 0.08 }}
+        interactive={false}
+      />
+      <Circle
+        center={center}
+        radius={120000}
+        pathOptions={{ color: '#FF9500', weight: 0.8, fillColor: '#FF9500', fillOpacity: 0.12 }}
+        interactive={false}
+      />
+      <Circle
+        center={center}
+        radius={50000}
+        pathOptions={{ color: '#FF3B30', weight: 1, fillColor: '#FF3B30', fillOpacity: 0.18 }}
+        interactive={false}
+      />
+      <Marker position={center} icon={eyeIcon} interactive={false}>
+        <Tooltip permanent direction="top" offset={[0, -16]} className="cell-tooltip">
+          {CYCLONE_NAME} · Simulated IMD advisory
+        </Tooltip>
+      </Marker>
+    </>
+  );
+}
+
+function RealtimeWeatherLayer() {
   const { conditions, fetchWeather, isLoading } = useWeatherStore();
 
   useEffect(() => {
-    if (showWeatherOverlay && conditions.length === 0) {
-      fetchWeather();
-    }
-  }, [showWeatherOverlay, conditions.length, fetchWeather]);
+    if (conditions.length === 0) fetchWeather();
+  }, [conditions.length, fetchWeather]);
 
   const areaCells = useMemo(
     () =>
@@ -35,8 +76,6 @@ export default function WeatherLayer() {
       ).slice(0, MAX_CELLS),
     []
   );
-
-  if (!showWeatherOverlay) return null;
 
   const styleMap = {
     weather_danger: { fill: '#FF3B30', opacity: 0.4 },
@@ -79,4 +118,13 @@ export default function WeatherLayer() {
       })}
     </>
   );
+}
+
+export default function WeatherLayer() {
+  const showWeatherOverlay = useUIStore((s) => s.showWeatherOverlay);
+  const weatherMode = useUIStore((s) => s.weatherMode);
+
+  if (!showWeatherOverlay) return null;
+  if (weatherMode === 'simulate') return <SimulatedWeatherLayer />;
+  return <RealtimeWeatherLayer />;
 }

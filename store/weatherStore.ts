@@ -7,7 +7,7 @@ interface WeatherStore {
   isLoading: boolean;
   error: string | null;
   dataSource: 'live' | 'cached' | 'fallback';
-  fetchWeather: () => Promise<void>;
+  fetchWeather: (force?: boolean) => Promise<void>;
 }
 
 export const useWeatherStore = create<WeatherStore>((set, get) => ({
@@ -17,9 +17,9 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   error: null,
   dataSource: 'fallback',
 
-  fetchWeather: async () => {
+  fetchWeather: async (force = false) => {
     const { lastFetched } = get();
-    if (lastFetched && Date.now() - lastFetched.getTime() < 30 * 60 * 1000) {
+    if (!force && lastFetched && Date.now() - lastFetched.getTime() < 30 * 60 * 1000) {
       set({ dataSource: 'cached' });
       return;
     }

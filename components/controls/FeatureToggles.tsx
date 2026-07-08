@@ -20,7 +20,7 @@ const TOGGLES: {
 }[] = [
   { key: 'showBorderZone', emoji: '🚧', label: 'Border Zone', subtext: 'IMBL · Adaptive H3', activeColor: '#FF3B30' },
   { key: 'showHazardMap', emoji: '⚓', label: 'Hazard Map', subtext: 'Crowd Reports', activeColor: '#FF9500' },
-  { key: 'showWeatherOverlay', emoji: '🌀', label: 'Weather', subtext: 'Open-Meteo Live', activeColor: '#FFD60A' },
+  { key: 'showWeatherOverlay', emoji: '🌀', label: 'Weather', subtext: 'Simulate or Real Time', activeColor: '#FFD60A' },
   { key: 'showFishingZones', emoji: '🎣', label: 'Fish Zones', subtext: 'INCOIS PFZ', activeColor: '#30D158' },
   { key: 'showCoverageMap', emoji: '📡', label: 'Coverage Map', subtext: 'Deployment Planner', activeColor: '#30D158' },
 ];
@@ -29,7 +29,7 @@ const ADOPTION_LEVELS: AdoptionLevel[] = ['5%', '20%', '50%'];
 
 export default function FeatureToggles() {
   const store = useUIStore();
-  const { dataSource, lastFetched, fetchWeather } = useWeatherStore();
+  const { dataSource, fetchWeather, isLoading } = useWeatherStore();
 
   const setterFor = (key: ToggleKey): ((val: boolean) => void) => {
     switch (key) {
@@ -44,6 +44,11 @@ export default function FeatureToggles() {
       case 'showCoverageMap':
         return store.setShowCoverageMap;
     }
+  };
+
+  const handleWeatherMode = (mode: 'realtime' | 'simulate') => {
+    store.setWeatherMode(mode);
+    if (mode === 'realtime') fetchWeather(true);
   };
 
   return (
@@ -70,11 +75,13 @@ export default function FeatureToggles() {
                   {key === 'showCoverageMap' && isActive
                     ? `${store.coverageLevel} adoption · ${coveragePercent(store.coverageLevel)}% covered`
                     : key === 'showWeatherOverlay' && isActive
-                      ? dataSource === 'live'
-                        ? 'Live · Open-Meteo Marine'
-                        : dataSource === 'cached' && lastFetched
-                          ? `Cached · ${Math.round((Date.now() - lastFetched.getTime()) / 60000)}m ago`
-                          : 'Offline · Fallback data'
+                      ? store.weatherMode === 'realtime'
+                        ? dataSource === 'live'
+                          ? 'Real Time · Open-Meteo Live'
+                          : isLoading
+                            ? 'Real Time · Loading…'
+                            : 'Real Time · Cached/fallback'
+                        : 'Simulate · IMD cyclone demo'
                       : subtext}
                 </div>
               </div>
@@ -88,18 +95,56 @@ export default function FeatureToggles() {
             </button>
 
             {key === 'showWeatherOverlay' && isActive && (
-              <div className="flex items-center gap-1.5 px-3 pb-1">
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    dataSource === 'live' ? 'bg-alert-green animate-pulse' : 'bg-white/30'
-                  }`}
-                />
-                <button
-                  onClick={() => fetchWeather()}
-                  className="font-mono text-[9px] text-white/40 hover:text-white/60 transition-colors"
-                >
-                  ↺ Refresh live data
-                </button>
+              <div className="px-1 pt-1.5 flex flex-col gap-1.5">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleWeatherMode('realtime')}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-semibold transition-all"
+                    style={{
+                      background:
+                        store.weatherMode === 'realtime'
+                          ? 'rgba(48,209,88,0.18)'
+                          : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${
+                        store.weatherMode === 'realtime'
+                          ? 'rgba(48,209,88,0.45)'
+                          : 'rgba(255,255,255,0.08)'
+                      }`,
+                      color:
+                        store.weatherMode === 'realtime' ? '#30D158' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    Real Time
+                  </button>
+                  <button
+                    onClick={() => handleWeatherMode('simulate')}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-semibold transition-all"
+                    style={{
+                      background:
+                        store.weatherMode === 'simulate'
+                          ? 'rgba(255,214,10,0.18)'
+                          : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${
+                        store.weatherMode === 'simulate'
+                          ? 'rgba(255,214,10,0.45)'
+                          : 'rgba(255,255,255,0.08)'
+                      }`,
+                      color:
+                        store.weatherMode === 'simulate' ? '#FFD60A' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    Simulate
+                  </button>
+                </div>
+                {store.weatherMode === 'realtime' && (
+                  <button
+                    onClick={() => fetchWeather()}
+                    disabled={isLoading}
+                    className="font-mono text-[9px] text-white/40 hover:text-white/60 transition-colors text-left px-2 disabled:opacity-40"
+                  >
+                    {isLoading ? '↻ Fetching live data…' : '↻ Refresh Open-Meteo data'}
+                  </button>
+                )}
               </div>
             )}
 

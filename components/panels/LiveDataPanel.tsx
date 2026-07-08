@@ -2,9 +2,32 @@
 
 import { motion } from 'framer-motion';
 import { useWeatherStore } from '@/store/weatherStore';
+import { useUIStore } from '@/store/uiStore';
 
 export default function LiveDataPanel() {
+  const weatherMode = useUIStore((s) => s.weatherMode);
   const { conditions, isLoading, dataSource, lastFetched, fetchWeather } = useWeatherStore();
+
+  if (weatherMode !== 'realtime') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5 }}
+        className="w-52"
+      >
+        <div className="glass rounded-2xl p-3 shadow-panel opacity-80">
+          <div className="data-label mb-1">Sea State</div>
+          <div className="font-mono text-[10px] text-white/40 leading-relaxed">
+            Simulated IMD cyclone mode active.
+            <br />
+            Switch to <span className="text-alert-yellow">Real Time</span> in the Weather toggle for
+            live Open-Meteo data.
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   const maxWave =
     conditions.length > 0 ? Math.max(...conditions.map((c) => c.waveHeight)) : null;
@@ -106,7 +129,7 @@ export default function LiveDataPanel() {
         </div>
 
         <button
-          onClick={fetchWeather}
+          onClick={() => fetchWeather(true)}
           disabled={isLoading}
           className="mt-2 w-full text-[9px] font-mono text-white/30 hover:text-white/60 transition-colors disabled:opacity-40"
         >

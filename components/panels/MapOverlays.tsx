@@ -1,19 +1,25 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUIStore } from '@/store/uiStore';
+import { useUIStore, type WeatherMode } from '@/store/uiStore';
+import { useWeatherStore } from '@/store/weatherStore';
 
-// HTML overlays that sit on top of the Leaflet map (Leaflet layer components
-// cannot render arbitrary positioned DOM, so these live outside the map).
+const MODES: { id: WeatherMode; label: string }[] = [
+  { id: 'realtime', label: 'Real Time' },
+  { id: 'simulate', label: 'Simulate' },
+];
+
 export default function MapOverlays() {
   const networkOnline = useUIStore((s) => s.networkOnline);
   const showWeatherOverlay = useUIStore((s) => s.showWeatherOverlay);
+  const weatherMode = useUIStore((s) => s.weatherMode);
+  const setWeatherMode = useUIStore((s) => s.setWeatherMode);
   const showBorderZone = useUIStore((s) => s.showBorderZone);
   const selectedCell = useUIStore((s) => s.selectedCell);
+  const { dataSource } = useWeatherStore();
 
   return (
     <>
-      {/* V2 — offline vector map indicator */}
       <AnimatePresence>
         {!networkOnline && (
           <motion.div
@@ -32,30 +38,58 @@ export default function MapOverlays() {
         )}
       </AnimatePresence>
 
-      {/* V9 — weather data source attribution */}
       <AnimatePresence>
         {showWeatherOverlay && (
           <motion.div
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -10, opacity: 0 }}
-            className="absolute top-[104px] left-1/2 -translate-x-1/2 z-[1000] pointer-events-none"
+            className="absolute top-[104px] left-1/2 -translate-x-1/2 z-[1000]"
           >
-            <div className="glass rounded-full px-4 py-1.5 flex items-center gap-3 whitespace-nowrap">
-              <span className="font-mono text-[10px] text-white/40">Data source</span>
-              <span className="font-mono text-[10px] text-alert-yellow font-semibold">
-                IMD Cyclone Advisory (Simulated)
-              </span>
-              <span className="font-mono text-[10px] text-white/20">·</span>
-              <span className="font-mono text-[10px] text-white/40">
-                Phase 2: INCOIS Ocean State Forecast API
+            <div className="glass rounded-full px-2 py-1.5 flex items-center gap-2">
+              <span className="font-mono text-[10px] text-white/40 pl-2">Weather</span>
+              {MODES.map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={() => setWeatherMode(mode.id)}
+                  className="px-3 py-1 rounded-full font-mono text-[10px] font-semibold transition-all"
+                  style={{
+                    background:
+                      weatherMode === mode.id
+                        ? mode.id === 'realtime'
+                          ? 'rgba(48,209,88,0.2)'
+                          : 'rgba(255,214,10,0.2)'
+                        : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${
+                      weatherMode === mode.id
+                        ? mode.id === 'realtime'
+                          ? 'rgba(48,209,88,0.5)'
+                          : 'rgba(255,214,10,0.5)'
+                        : 'rgba(255,255,255,0.08)'
+                    }`,
+                    color:
+                      weatherMode === mode.id
+                        ? mode.id === 'realtime'
+                          ? '#30D158'
+                          : '#FFD60A'
+                        : 'rgba(255,255,255,0.45)',
+                  }}
+                >
+                  {mode.label}
+                </button>
+              ))}
+              <span className="font-mono text-[9px] text-white/25 pr-2 hidden sm:inline">
+                {weatherMode === 'realtime'
+                  ? dataSource === 'live'
+                    ? '· Open-Meteo Marine'
+                    : '· Fetching live data…'
+                  : '· IMD cyclone demo'}
               </span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* V1c + V10 — border zone resolution legend + attribution */}
       <AnimatePresence>
         {showBorderZone && !selectedCell && (
           <motion.div

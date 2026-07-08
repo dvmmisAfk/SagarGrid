@@ -34,25 +34,31 @@ function parseGFWEvent(event: Record<string, unknown>, index: number): RealVesse
   };
 }
 
-export async function fetchRealVessels(): Promise<RealVessel[]> {
+export async function fetchRealVessels(): Promise<{
+  vessels: RealVessel[];
+  source: 'live' | 'fallback' | 'unconfigured';
+}> {
   try {
     const response = await fetch('/api/vessels?lat=10.5&lng=80.1');
-    if (!response.ok) return FALLBACK_VESSELS;
+    if (!response.ok) return { vessels: FALLBACK_VESSELS, source: 'fallback' };
 
     const data = await response.json();
     const entries = data.entries ?? data.data ?? [];
+    const source = (data.source ?? 'fallback') as 'live' | 'fallback' | 'unconfigured';
 
-    if (data.source === 'fallback' || !Array.isArray(entries) || entries.length === 0) {
-      return FALLBACK_VESSELS;
+    if (source !== 'live' || !Array.isArray(entries) || entries.length === 0) {
+      return { vessels: FALLBACK_VESSELS, source: data.tokenConfigured ? 'fallback' : 'unconfigured' };
     }
 
     const vessels = entries.slice(0, 5).map((event: Record<string, unknown>, i: number) =>
       parseGFWEvent(event, i)
     );
 
-    return vessels.some((v) => v.isReal) ? vessels : FALLBACK_VESSELS;
+    return vessels.some((v) => v.isReal)
+      ? { vessels, source: 'live' }
+      : { vessels: FALLBACK_VESSELS, source: 'fallback' };
   } catch {
-    return FALLBACK_VESSELS;
+    return { vessels: FALLBACK_VESSELS, source: 'fallback' };
   }
 }
 

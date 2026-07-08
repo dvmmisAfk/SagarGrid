@@ -8,13 +8,16 @@ import { useWeatherStore } from '@/store/weatherStore';
 export default function TopBar() {
   const { networkOnline, setNetworkOnline, demoMode, setDemoMode, setDemoStep, visibleCellCount, gridResolution } =
     useUIStore();
-  const { boats, aisDataLive } = useBoatStore();
+  const { boats, aisDataLive, vesselSource } = useBoatStore();
   const { hazards } = useGridStore();
   const { conditions, dataSource } = useWeatherStore();
+  const weatherMode = useUIStore((s) => s.weatherMode);
 
   const meshBoats = boats.filter((b) => b.connectedTo.length > 0).length;
   const maxWave =
-    conditions.length > 0 ? Math.max(...conditions.map((c) => c.waveHeight)) : null;
+    weatherMode === 'realtime' && conditions.length > 0
+      ? Math.max(...conditions.map((c) => c.waveHeight))
+      : null;
 
   return (
     <div
@@ -71,22 +74,31 @@ export default function TopBar() {
         <StatChip label="Boats in mesh" value={`${meshBoats}`} unit={`/ ${boats.length}`} color="cyan" />
         <StatChip
           label="Max wave height"
-          value={maxWave !== null ? `${maxWave.toFixed(1)}m` : '...'}
-          unit={dataSource === 'live' ? 'LIVE' : dataSource === 'cached' ? 'CACHED' : ''}
+          value={
+            weatherMode !== 'realtime'
+              ? 'SIM'
+              : maxWave !== null
+                ? `${maxWave.toFixed(1)}m`
+                : '...'
+          }
+          unit={weatherMode === 'realtime' && dataSource === 'live' ? 'LIVE' : ''}
           color={
-            maxWave === null
+            weatherMode !== 'realtime'
               ? 'cyan'
-              : maxWave >= 4
-                ? 'red'
-                : maxWave >= 2.5
-                  ? 'orange'
-                  : 'green'
+              : maxWave === null
+                ? 'cyan'
+                : maxWave >= 4
+                  ? 'red'
+                  : maxWave >= 2.5
+                    ? 'orange'
+                    : 'green'
           }
         />
         <StatChip
           label="Vessel data"
-          value={aisDataLive ? 'AIS LIVE' : 'DEMO'}
-          color={aisDataLive ? 'green' : 'cyan'}
+          value={aisDataLive ? 'AIS LIVE' : vesselSource === 'unconfigured' ? 'DEMO' : 'NO AIS'}
+          unit={vesselSource === 'fallback' ? 'GFW empty' : ''}
+          color={aisDataLive ? 'green' : vesselSource === 'unconfigured' ? 'cyan' : 'orange'}
         />
         <StatChip label="Hazards reported" value={`${hazards.length}`} color="orange" />
         <StatChip

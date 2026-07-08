@@ -19,12 +19,16 @@ interface BoatStore {
   frozen: boolean;
   radioRangeKm: number;
   aisDataLive: boolean;
+  vesselSource: 'live' | 'fallback' | 'unconfigured';
   weatherAlertsTriggered: Set<string>;
   initBoats: () => void;
   updateBoatPositions: () => void;
   setBoatStatus: (boatId: string, status: Boat['status']) => void;
   setBoatPosition: (boatId: string, lat: number, lng: number) => void;
-  applyRealVessels: (vessels: { id: string; lat: number; lng: number; isReal: boolean }[]) => void;
+  applyRealVessels: (
+    vessels: { id: string; lat: number; lng: number; isReal: boolean }[],
+    source?: 'live' | 'fallback' | 'unconfigured'
+  ) => void;
   updateMeshLinks: () => void;
   setFrozen: (val: boolean) => void;
   setRadioRange: (km: number) => void;
@@ -35,6 +39,7 @@ export const useBoatStore = create<BoatStore>((set, get) => ({
   frozen: false,
   radioRangeKm: RADIO_RANGE_KM,
   aisDataLive: false,
+  vesselSource: 'unconfigured',
   weatherAlertsTriggered: new Set(),
 
   initBoats: () => {
@@ -50,6 +55,9 @@ export const useBoatStore = create<BoatStore>((set, get) => ({
     if (get().frozen) return;
 
     const weatherConditions = useWeatherStore.getState().conditions;
+    const { weatherMode, showWeatherOverlay } = useUIStore.getState();
+    const useLiveWeather =
+      showWeatherOverlay && weatherMode === 'realtime' && weatherConditions.length > 0;
     const sosStatus = useSOSStore.getState().sosEvent.status;
     const triggered = new Set(get().weatherAlertsTriggered);
 
@@ -57,10 +65,13 @@ export const useBoatStore = create<BoatStore>((set, get) => ({
       boats: state.boats.map((boat) => {
         if (boat.route.length <= 1) return boat;
 
-        const waveHeight = interpolateWaveHeight(boat.lat, boat.lng, weatherConditions);
-        const speedMult = getBoatSpeedMultiplier(waveHeight);
+        const waveHeight = useLiveWeather
+          ? interpolateWaveHeight(boat.lat, boat.lng, weatherConditions)
+          : 0;
+        const speedMult = useLiveWeather ? getBoatSpeedMultiplier(waveHeight) : 1;
 
         if (
+          useLiveWeather &&
           shouldTriggerWeatherSOS(waveHeight, boat.status) &&
           boat.id !== 'B5' &&
           sosStatus === 'idle' &&
@@ -73,7 +84,7 @@ export const useBoatStore = create<BoatStore>((set, get) => ({
           });
         }
 
-        if (waveHeight >= 3.0 && boat.id !== 'B5') {
+        if (useLiveWeather && waveHeight >= 3.0 && boat.id !== 'B5') {
           const [newLat, newLng] = getStormEscapeHeading(boat.lat, boat.lng);
           return {
             ...boat,
@@ -138,16 +149,16 @@ export const useBoatStore = create<BoatStore>((set, get) => ({
     get().updateMeshLinks();
   },
 
-  applyRealVessels: (vessels) => {
+  applyRealVessels: (vessels, source = 'fallback') => {
     const boatIds = ['B1', 'B2', 'B3', 'B4', 'B5'];
     const hasReal = vessels.some((v) => v.isReal);
-    if (!hasReal) return;
 
     set((state) => ({
-      aisDataLive: true,
+      aisDataLive: hasReal,
+      vesselSource: hasReal ? 'live' : source,
       boats: state.boats.map((boat, i) => {
-        const vessel = vessels.find((v) => v.id === boatIds[i]);
-        if (!vessel || boat.id === 'B5') return boat;
+        const vessel = vessels.find((v) => v.id === boatIds[i]) ?? vessels[i];
+        if (!vessel || boat.id === 'B5' || !hasReal) return boat;
         return {
           ...boat,
           lat: vessel.lat,

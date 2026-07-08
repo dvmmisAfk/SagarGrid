@@ -35,20 +35,24 @@ export default function Home() {
   const boats = useBoatStore((s) => s.boats);
   const networkOnline = useUIStore((s) => s.networkOnline);
   const fetchWeather = useWeatherStore((s) => s.fetchWeather);
+  const weatherMode = useUIStore((s) => s.weatherMode);
 
   useEffect(() => {
     initBoats();
-    fetchWeather();
 
-    fetchRealVessels().then((vessels) => {
-      applyRealVessels(vessels);
+    if (weatherMode === 'realtime') {
+      fetchWeather(true);
+    }
+
+    fetchRealVessels().then(({ vessels, source }) => {
+      applyRealVessels(vessels, source);
     });
 
     const interval = setInterval(() => {
       updateBoatPositions();
     }, 800);
     return () => clearInterval(interval);
-  }, [initBoats, updateBoatPositions, applyRealVessels, fetchWeather]);
+  }, [initBoats, updateBoatPositions, applyRealVessels, fetchWeather, weatherMode]);
 
   return (
     <main className="w-screen h-screen bg-ocean-950 relative overflow-hidden">

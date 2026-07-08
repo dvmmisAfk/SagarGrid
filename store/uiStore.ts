@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import { CellInfo } from '@/types';
 import type { AdoptionLevel } from '@/lib/coverageData';
 
+export type WeatherMode = 'realtime' | 'simulate';
+
 interface UIStore {
   networkOnline: boolean;
   showBorderZone: boolean;
   showHazardMap: boolean;
   showWeatherOverlay: boolean;
+  weatherMode: WeatherMode;
   showFishingZones: boolean;
   showCoverageMap: boolean;
   coverageLevel: AdoptionLevel;
@@ -27,6 +30,7 @@ interface UIStore {
   setShowBorderZone: (val: boolean) => void;
   setShowHazardMap: (val: boolean) => void;
   setShowWeatherOverlay: (val: boolean) => void;
+  setWeatherMode: (mode: WeatherMode) => void;
   setShowFishingZones: (val: boolean) => void;
   setShowCoverageMap: (val: boolean) => void;
   setCoverageLevel: (level: AdoptionLevel) => void;
@@ -48,6 +52,7 @@ export const useUIStore = create<UIStore>((set) => ({
   showBorderZone: false,
   showHazardMap: true,
   showWeatherOverlay: false,
+  weatherMode: 'simulate',
   showFishingZones: false,
   showCoverageMap: false,
   coverageLevel: '5%',
@@ -68,6 +73,7 @@ export const useUIStore = create<UIStore>((set) => ({
   setShowBorderZone: (val) => set({ showBorderZone: val }),
   setShowHazardMap: (val) => set({ showHazardMap: val }),
   setShowWeatherOverlay: (val) => set({ showWeatherOverlay: val }),
+  setWeatherMode: (mode) => set({ weatherMode: mode }),
   setShowFishingZones: (val) => set({ showFishingZones: val }),
   setShowCoverageMap: (val) => set({ showCoverageMap: val }),
   setCoverageLevel: (level) => set({ coverageLevel: level }),

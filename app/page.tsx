@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBoatStore } from '@/store/boatStore';
 import { useUIStore } from '@/store/uiStore';
+import { useWeatherStore } from '@/store/weatherStore';
+import { fetchRealVessels } from '@/lib/realTimeVessels';
 import { h3IndexToShortCode } from '@/lib/h3utils';
 import SplashScreen from '@/components/SplashScreen';
 import TopBar from '@/components/controls/TopBar';
@@ -19,6 +21,7 @@ import AlertBanner from '@/components/panels/AlertBanner';
 import HazardModal from '@/components/panels/HazardModal';
 import DTNPanel from '@/components/panels/DTNPanel';
 import MapOverlays from '@/components/panels/MapOverlays';
+import LiveDataPanel from '@/components/panels/LiveDataPanel';
 import DisclaimerBar from '@/components/DisclaimerBar';
 import Narrator from '@/components/tour/Narrator';
 import GuidedCursor from '@/components/tour/GuidedCursor';
@@ -28,16 +31,24 @@ const SagarMap = dynamic(() => import('@/components/map/SagarMap'), { ssr: false
 export default function Home() {
   const initBoats = useBoatStore((s) => s.initBoats);
   const updateBoatPositions = useBoatStore((s) => s.updateBoatPositions);
+  const applyRealVessels = useBoatStore((s) => s.applyRealVessels);
   const boats = useBoatStore((s) => s.boats);
   const networkOnline = useUIStore((s) => s.networkOnline);
+  const fetchWeather = useWeatherStore((s) => s.fetchWeather);
 
   useEffect(() => {
     initBoats();
+    fetchWeather();
+
+    fetchRealVessels().then((vessels) => {
+      applyRealVessels(vessels);
+    });
+
     const interval = setInterval(() => {
       updateBoatPositions();
     }, 800);
     return () => clearInterval(interval);
-  }, [initBoats, updateBoatPositions]);
+  }, [initBoats, updateBoatPositions, applyRealVessels, fetchWeather]);
 
   return (
     <main className="w-screen h-screen bg-ocean-950 relative overflow-hidden">
@@ -49,7 +60,8 @@ export default function Home() {
       </div>
 
       {/* Left panel — hidden on mobile, shown on md+ */}
-      <div className="hidden md:block absolute left-4 top-[72px] z-[1000]">
+      <div className="hidden md:flex absolute left-4 top-[72px] z-[1000] flex-col gap-3">
+        <LiveDataPanel />
         <BoatListPanel />
       </div>
 

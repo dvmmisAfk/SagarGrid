@@ -1,6 +1,7 @@
 'use client';
 
 import { useUIStore } from '@/store/uiStore';
+import { useWeatherStore } from '@/store/weatherStore';
 import { coveragePercent, AdoptionLevel } from '@/lib/coverageData';
 
 type ToggleKey =
@@ -19,7 +20,7 @@ const TOGGLES: {
 }[] = [
   { key: 'showBorderZone', emoji: '🚧', label: 'Border Zone', subtext: 'IMBL · Adaptive H3', activeColor: '#FF3B30' },
   { key: 'showHazardMap', emoji: '⚓', label: 'Hazard Map', subtext: 'Crowd Reports', activeColor: '#FF9500' },
-  { key: 'showWeatherOverlay', emoji: '🌀', label: 'Weather', subtext: 'IMD Advisory', activeColor: '#FFD60A' },
+  { key: 'showWeatherOverlay', emoji: '🌀', label: 'Weather', subtext: 'Open-Meteo Live', activeColor: '#FFD60A' },
   { key: 'showFishingZones', emoji: '🎣', label: 'Fish Zones', subtext: 'INCOIS PFZ', activeColor: '#30D158' },
   { key: 'showCoverageMap', emoji: '📡', label: 'Coverage Map', subtext: 'Deployment Planner', activeColor: '#30D158' },
 ];
@@ -28,6 +29,7 @@ const ADOPTION_LEVELS: AdoptionLevel[] = ['5%', '20%', '50%'];
 
 export default function FeatureToggles() {
   const store = useUIStore();
+  const { dataSource, lastFetched, fetchWeather } = useWeatherStore();
 
   const setterFor = (key: ToggleKey): ((val: boolean) => void) => {
     switch (key) {
@@ -67,7 +69,13 @@ export default function FeatureToggles() {
                 <div className="font-mono text-[9px] text-white/30 truncate">
                   {key === 'showCoverageMap' && isActive
                     ? `${store.coverageLevel} adoption · ${coveragePercent(store.coverageLevel)}% covered`
-                    : subtext}
+                    : key === 'showWeatherOverlay' && isActive
+                      ? dataSource === 'live'
+                        ? 'Live · Open-Meteo Marine'
+                        : dataSource === 'cached' && lastFetched
+                          ? `Cached · ${Math.round((Date.now() - lastFetched.getTime()) / 60000)}m ago`
+                          : 'Offline · Fallback data'
+                      : subtext}
                 </div>
               </div>
               <div
@@ -78,6 +86,22 @@ export default function FeatureToggles() {
                 }}
               />
             </button>
+
+            {key === 'showWeatherOverlay' && isActive && (
+              <div className="flex items-center gap-1.5 px-3 pb-1">
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    dataSource === 'live' ? 'bg-alert-green animate-pulse' : 'bg-white/30'
+                  }`}
+                />
+                <button
+                  onClick={() => fetchWeather()}
+                  className="font-mono text-[9px] text-white/40 hover:text-white/60 transition-colors"
+                >
+                  ↺ Refresh live data
+                </button>
+              </div>
+            )}
 
             {key === 'showCoverageMap' && isActive && (
               <div className="flex gap-1 px-1 pt-1.5">

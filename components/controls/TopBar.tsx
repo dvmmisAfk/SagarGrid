@@ -3,14 +3,18 @@
 import { useUIStore } from '@/store/uiStore';
 import { useBoatStore } from '@/store/boatStore';
 import { useGridStore } from '@/store/gridStore';
+import { useWeatherStore } from '@/store/weatherStore';
 
 export default function TopBar() {
   const { networkOnline, setNetworkOnline, demoMode, setDemoMode, setDemoStep, visibleCellCount, gridResolution } =
     useUIStore();
-  const { boats } = useBoatStore();
+  const { boats, aisDataLive } = useBoatStore();
   const { hazards } = useGridStore();
+  const { conditions, dataSource } = useWeatherStore();
 
   const meshBoats = boats.filter((b) => b.connectedTo.length > 0).length;
+  const maxWave =
+    conditions.length > 0 ? Math.max(...conditions.map((c) => c.waveHeight)) : null;
 
   return (
     <div
@@ -65,6 +69,25 @@ export default function TopBar() {
       {/* ── Live stats bar ── */}
       <div className="flex items-center gap-5 flex-1">
         <StatChip label="Boats in mesh" value={`${meshBoats}`} unit={`/ ${boats.length}`} color="cyan" />
+        <StatChip
+          label="Max wave height"
+          value={maxWave !== null ? `${maxWave.toFixed(1)}m` : '...'}
+          unit={dataSource === 'live' ? 'LIVE' : dataSource === 'cached' ? 'CACHED' : ''}
+          color={
+            maxWave === null
+              ? 'cyan'
+              : maxWave >= 4
+                ? 'red'
+                : maxWave >= 2.5
+                  ? 'orange'
+                  : 'green'
+          }
+        />
+        <StatChip
+          label="Vessel data"
+          value={aisDataLive ? 'AIS LIVE' : 'DEMO'}
+          color={aisDataLive ? 'green' : 'cyan'}
+        />
         <StatChip label="Hazards reported" value={`${hazards.length}`} color="orange" />
         <StatChip
           label="Grid cells"

@@ -19,7 +19,7 @@ interface UIStore {
   showSOSPanel: boolean;
   showHazardModal: boolean;
   hazardModalCell: string | null;
-  activeAlert: { type: 'border' | 'hazard'; message: string } | null;
+  activeAlert: { type: 'border' | 'hazard' | 'weather'; message: string } | null;
   visibleCellCount: number;
   gridResolution: number;
 

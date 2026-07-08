@@ -119,3 +119,25 @@ export function getConnectedBoats(boatId: string, allBoats: Boat[]): string[] {
     .filter((b) => haversineKm(boat.lat, boat.lng, b.lat, b.lng) <= RADIO_RANGE_KM)
     .map((b) => b.id);
 }
+
+export function getBoatSpeedMultiplier(waveHeight: number): number {
+  if (waveHeight >= 4.0) return 0;
+  if (waveHeight >= 2.5) return 0.3;
+  if (waveHeight >= 1.5) return 0.6;
+  return 1.0;
+}
+
+export function shouldTriggerWeatherSOS(waveHeight: number, boatStatus: string): boolean {
+  return waveHeight >= 4.0 && boatStatus === 'normal';
+}
+
+export function getStormEscapeHeading(boatLat: number, boatLng: number): [number, number] {
+  const shoreLat = 10.78;
+  const shoreLng = 79.85;
+  const dLat = shoreLat - boatLat;
+  const dLng = shoreLng - boatLng;
+  const dist = Math.sqrt(dLat ** 2 + dLng ** 2);
+  if (dist < 0.0001) return [boatLat, boatLng];
+  const stepSize = 0.005;
+  return [boatLat + (dLat / dist) * stepSize, boatLng + (dLng / dist) * stepSize];
+}

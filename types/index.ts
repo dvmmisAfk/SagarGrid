@@ -4,6 +4,7 @@ export type CellStatus =
   | 'border'
   | 'hazard'
   | 'weather_watch'
+  | 'weather_advisory'
   | 'weather_danger'
   | 'fishing_zone';
 
@@ -32,6 +33,7 @@ export interface Boat {
   route: [number, number][]; // [lat, lng] waypoints
   routeIndex: number;
   speed: number; // knots
+  isReal?: boolean; // true when position from AIS data
 }
 
 export interface Hazard {

@@ -8,7 +8,8 @@ import { useGridStore } from '@/store/gridStore';
 import { useBoatStore } from '@/store/boatStore';
 import { isBorderCell } from '@/lib/borderData';
 import { isLandCell } from '@/lib/landSea';
-import { getWeatherCells } from '@/lib/weatherData';
+import { interpolateWaveHeight, waveHeightToCellStatus } from '@/lib/realTimeWeather';
+import { useWeatherStore } from '@/store/weatherStore';
 import {
   getCellsInBoundingBox,
   getResolutionForZoom,
@@ -37,8 +38,8 @@ export default function GridLayer() {
   } = useUIStore();
   const { hazards } = useGridStore();
   const { boats } = useBoatStore();
+  const { conditions } = useWeatherStore();
 
-  const weatherCells = useMemo(() => getWeatherCells(), []);
   const hazardCellList = useMemo(() => hazards.map((h) => h.cellIndex), [hazards]);
   const boatCells = useMemo(
     () => boats.map((b) => b.currentCell).filter(Boolean),
@@ -103,10 +104,14 @@ export default function GridLayer() {
 
         const isBorder = !isLand && showBorderZone && isBorderCell(cellIndex);
         const isHazard = !isLand && showHazardMap && cellInList(cellIndex, hazardCellList);
-        const isWDanger =
-          !isLand && showWeatherOverlay && cellInList(cellIndex, weatherCells.danger);
-        const isWWatch =
-          !isLand && showWeatherOverlay && cellInList(cellIndex, weatherCells.watch);
+        const waveHeight =
+          !isLand && conditions.length > 0
+            ? interpolateWaveHeight(lat, lng, conditions)
+            : 0;
+        const weatherStatus =
+          !isLand && showWeatherOverlay && conditions.length > 0
+            ? waveHeightToCellStatus(waveHeight)
+            : 'normal';
         const hasBoat = !isLand && boatCells.some((bc) => cellsMatch(cellIndex, bc));
 
         let fill = '#1E4D7B';
@@ -139,19 +144,8 @@ export default function GridLayer() {
           stroke = '#FF3B30';
           strokeOp = 0.9;
           strokeW = 1.5;
-        } else if (isWWatch) {
-          fill = '#FF9500';
-          fillOp = 0.22;
-          stroke = '#FF9500';
-          strokeOp = 0.7;
-          strokeW = 1;
-        } else if (isWDanger) {
-          fill = '#FF3B30';
-          fillOp = 0.38;
-          stroke = '#FF3B30';
-          strokeOp = 1;
-          strokeW = 1.8;
         }
+        // Weather cell coloring handled by WeatherLayer overlay
 
         if (isHov && !isLand) {
           fillOp = Math.min(fillOp + 0.18, 0.55);
@@ -193,15 +187,13 @@ export default function GridLayer() {
                 setSelectedCell({
                   h3Index: cellIndex,
                   shortCode: h3IndexToShortCode(cellIndex),
-                  status: isWDanger
-                    ? 'weather_danger'
-                    : isBorder
-                      ? 'border'
-                      : isHazard
-                        ? 'hazard'
-                        : isWWatch
-                          ? 'weather_watch'
-                          : 'normal',
+                  status: isBorder
+                    ? 'border'
+                    : isHazard
+                      ? 'hazard'
+                      : weatherStatus !== 'normal'
+                        ? weatherStatus
+                        : 'normal',
                   lat,
                   lng,
                   hazards: hazards.filter((h) => cellsMatch(cellIndex, h.cellIndex)),

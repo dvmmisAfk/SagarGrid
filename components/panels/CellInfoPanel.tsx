@@ -12,6 +12,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
   border: { label: '⚠ Border Zone', color: '#FF3B30', bg: 'rgba(255,59,48,0.12)' },
   hazard: { label: '⚠ Hazard Reported', color: '#FF9500', bg: 'rgba(255,149,0,0.12)' },
   weather_watch: { label: '🌀 Weather Watch', color: '#FFD60A', bg: 'rgba(255,214,10,0.1)' },
+  weather_advisory: { label: '🌀 Weather Advisory', color: '#FFD60A', bg: 'rgba(255,214,10,0.08)' },
   weather_danger: { label: '🌀 Danger Zone', color: '#FF3B30', bg: 'rgba(255,59,48,0.12)' },
   fishing_zone: { label: '🎣 Fishing Zone', color: '#30D158', bg: 'rgba(48,209,88,0.1)' },
 };

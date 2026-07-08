@@ -14,6 +14,7 @@ export default function AlertBanner() {
   }, [activeAlert, setActiveAlert]);
 
   const isBorder = activeAlert?.type === 'border';
+  const isWeather = activeAlert?.type === 'weather';
 
   return (
     <AnimatePresence>
@@ -26,23 +27,29 @@ export default function AlertBanner() {
           className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[1002] w-[480px] max-w-[calc(100vw-2rem)]"
         >
           <div
-            className={isBorder ? 'glass-danger' : 'glass'}
+            className={isBorder ? 'glass-danger' : isWeather ? 'glass-danger' : 'glass'}
             style={{
               borderRadius: '16px',
               padding: '16px 20px',
-              boxShadow: isBorder
+              boxShadow: isBorder || isWeather
                 ? '0 0 0 1px rgba(255,59,48,0.3), 0 8px 32px rgba(255,59,48,0.2)'
                 : '0 0 0 1px rgba(255,149,0,0.3), 0 8px 32px rgba(255,149,0,0.15)',
             }}
           >
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 text-2xl mt-0.5">{isBorder ? '🚨' : '⚠️'}</div>
+              <div className="flex-shrink-0 text-2xl mt-0.5">
+                {isBorder ? '🚨' : isWeather ? '🌊' : '⚠️'}
+              </div>
               <div className="flex-1">
                 <div
                   className="font-display font-bold text-sm mb-1"
-                  style={{ color: isBorder ? '#FF3B30' : '#FF9500' }}
+                  style={{ color: isBorder || isWeather ? '#FF3B30' : '#FF9500' }}
                 >
-                  {isBorder ? 'Border Zone Warning' : 'Hazard Detected'}
+                  {isBorder
+                    ? 'Border Zone Warning'
+                    : isWeather
+                      ? 'Weather Auto-Distress'
+                      : 'Hazard Detected'}
                 </div>
                 <div className="font-mono text-xs text-white/70 leading-relaxed">
                   {activeAlert.message}

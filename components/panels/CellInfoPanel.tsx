@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { useUIStore } from '@/store/uiStore';
 import { useBoatStore } from '@/store/boatStore';
 import { useGridStore, computeTrustScore, trustColor, trustLabel } from '@/store/gridStore';
@@ -38,16 +37,7 @@ export default function CellInfoPanel() {
   const isLand = selectedCell.status === 'land';
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key={selectedCell.h3Index}
-        initial={{ x: 24, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: 24, opacity: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-20 right-4 z-[1000] w-72 max-h-[calc(100vh-7rem)] overflow-y-auto"
-      >
-        <div className="glass-cyan rounded-2xl shadow-panel-cyan overflow-hidden">
+    <div className="glass-cyan rounded-2xl shadow-panel-cyan overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto">
           {/* Header */}
           <div className="p-4 pb-3 border-b border-white/5">
             <div className="flex items-start justify-between">
@@ -210,8 +200,6 @@ export default function CellInfoPanel() {
             )}
           </div>
           )}
-        </div>
-      </motion.div>
-    </AnimatePresence>
+    </div>
   );
 }

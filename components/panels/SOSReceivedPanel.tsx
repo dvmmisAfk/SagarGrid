@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useSOSStore } from '@/store/sosStore';
 import { useUIStore } from '@/store/uiStore';
@@ -40,7 +40,7 @@ export default function SOSReceivedPanel() {
 
       // Subtle confetti burst from the bottom center
       confetti({
-        particleCount: 70,
+        particleCount: 40,
         spread: 70,
         startVelocity: 42,
         origin: { x: 0.5, y: 1 },
@@ -53,18 +53,10 @@ export default function SOSReceivedPanel() {
     }
   }, [showSOSPanel, sosEvent.status]);
 
+  if (!showSOSPanel || sosEvent.status !== 'reached_shore') return null;
+
   return (
-    <AnimatePresence>
-      {showSOSPanel && sosEvent.status === 'reached_shore' && (
-        <motion.div
-          data-tour="sos-panel"
-          initial={{ y: 80, opacity: 0, scale: 0.95 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 80, opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1001] w-[520px] max-w-[calc(100vw-2rem)]"
-        >
-          <div className="glass-success rounded-2xl p-5 shadow-panel-green">
+    <div data-tour="sos-panel" className="glass-success rounded-2xl p-5 shadow-panel-green">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -207,10 +199,7 @@ export default function SOSReceivedPanel() {
             <div className="font-mono text-[9px] text-white/20 mt-3 leading-relaxed">
               Advisory platform · Not a substitute for licensed radio distress equipment.
             </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </div>
   );
 }
 

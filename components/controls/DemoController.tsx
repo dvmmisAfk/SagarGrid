@@ -172,13 +172,7 @@ export default function DemoController() {
   if (!demoMode) return null;
 
   return (
-    <motion.div
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 20, opacity: 0 }}
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1500] w-[560px] max-w-[calc(100vw-2rem)]"
-    >
-      <div className="glass-cyan rounded-2xl p-5 shadow-panel-cyan">
+    <div className="glass-cyan rounded-2xl p-5 shadow-panel-cyan">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-4">
           <div className="flex gap-1">
@@ -324,7 +318,6 @@ export default function DemoController() {
             {demoStep === total - 1 ? 'End of Demo' : 'Next →'}
           </button>
         </div>
-      </div>
-    </motion.div>
+    </div>
   );
 }

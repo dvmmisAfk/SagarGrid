@@ -14,7 +14,7 @@ import {
 } from '@/lib/realTimeWeather';
 import { getCellsInBoundingBox, getCellBoundaryLatLngs } from '@/lib/h3utils';
 
-const MAX_CELLS = 400;
+const MAX_CELLS = 280;
 
 const eyeIcon = L.divIcon({
   className: '',

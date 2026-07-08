@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useBoatStore } from '@/store/boatStore';
 import { h3IndexToShortCode } from '@/lib/h3utils';
 import { BoatStatus } from '@/types';
@@ -18,13 +17,7 @@ export default function BoatListPanel() {
   const { boats, frozen, setFrozen } = useBoatStore();
 
   return (
-    <motion.div
-      data-tour="fleet"
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ delay: 2.6, duration: 0.4 }}
-      className="glass-cyan rounded-2xl p-4 w-52 shadow-panel-cyan"
-    >
+    <div data-tour="fleet" className="glass-cyan rounded-2xl p-4 w-full shadow-panel-cyan">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
@@ -53,15 +46,12 @@ export default function BoatListPanel() {
 
       {/* Boat list */}
       <div className="flex flex-col gap-2">
-        {boats.map((boat, i) => {
+        {boats.map((boat) => {
           const cfg = STATUS_CONFIG[boat.status] || STATUS_CONFIG.normal;
           const isShore = boat.id === 'B5';
           return (
-            <motion.div
+            <div
               key={boat.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 2.7 + i * 0.05 }}
               className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-colors cursor-default"
             >
               {/* Status dot or shore icon */}
@@ -112,10 +102,10 @@ export default function BoatListPanel() {
                   {cfg.label}
                 </div>
               )}
-            </motion.div>
+            </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -19,12 +19,15 @@ import CellInfoPanel from '@/components/panels/CellInfoPanel';
 import SOSReceivedPanel from '@/components/panels/SOSReceivedPanel';
 import AlertBanner from '@/components/panels/AlertBanner';
 import HazardModal from '@/components/panels/HazardModal';
-import DTNPanel from '@/components/panels/DTNPanel';
+import DTNPanel, { useDTNPanelVisible } from '@/components/panels/DTNPanel';
 import MapOverlays from '@/components/panels/MapOverlays';
 import LiveDataPanel from '@/components/panels/LiveDataPanel';
 import DisclaimerBar from '@/components/DisclaimerBar';
 import Narrator from '@/components/tour/Narrator';
 import GuidedCursor from '@/components/tour/GuidedCursor';
+import DraggablePanel from '@/components/ui/DraggablePanel';
+import { usePanelLayoutStore } from '@/store/panelLayoutStore';
+import { useSOSStore } from '@/store/sosStore';
 
 const SagarMap = dynamic(() => import('@/components/map/SagarMap'), { ssr: false });
 
@@ -36,6 +39,16 @@ export default function Home() {
   const networkOnline = useUIStore((s) => s.networkOnline);
   const fetchWeather = useWeatherStore((s) => s.fetchWeather);
   const weatherMode = useUIStore((s) => s.weatherMode);
+
+  const selectedCell = useUIStore((s) => s.selectedCell);
+  const showSOSPanel = useUIStore((s) => s.showSOSPanel);
+  const demoMode = useUIStore((s) => s.demoMode);
+  const activeAlert = useUIStore((s) => s.activeAlert);
+  const sosStatus = useSOSStore((s) => s.sosEvent.status);
+  const dtnVisible = useDTNPanelVisible();
+  const resetLayout = usePanelLayoutStore((s) => s.resetLayout);
+
+  const sosPanelVisible = showSOSPanel && sosStatus === 'reached_shore';
 
   useEffect(() => {
     initBoats();
@@ -63,10 +76,54 @@ export default function Home() {
         <SagarMap />
       </div>
 
-      {/* Left panel — hidden on mobile, shown on md+ */}
-      <div className="hidden md:flex absolute left-4 top-[72px] z-[1000] flex-col gap-3">
-        <LiveDataPanel />
-        <BoatListPanel />
+      {/* Draggable desktop panels */}
+      <div className="hidden md:block">
+        <DraggablePanel id="live-data" title="Sea State" width={208}>
+          <LiveDataPanel />
+        </DraggablePanel>
+
+        <DraggablePanel id="fleet" title="Fleet Status" width={208}>
+          <BoatListPanel />
+        </DraggablePanel>
+
+        <DraggablePanel id="dtn" title="DTN Active" width={224} visible={dtnVisible}>
+          <DTNPanel />
+        </DraggablePanel>
+
+        <DraggablePanel
+          id="cell-info"
+          title="Grid Cell"
+          width={288}
+          visible={Boolean(selectedCell)}
+        >
+          <CellInfoPanel />
+        </DraggablePanel>
+
+        <DraggablePanel id="sos-panel" title="SOS Relay" width={520} visible={sosPanelVisible}>
+          <SOSReceivedPanel />
+        </DraggablePanel>
+
+        <DraggablePanel id="demo-controller" title="Demo Mode" width={560} visible={demoMode}>
+          <DemoController />
+        </DraggablePanel>
+
+        <DraggablePanel id="alert-banner" title="Alert" width={480} visible={Boolean(activeAlert)}>
+          <AlertBanner />
+        </DraggablePanel>
+
+        <DraggablePanel id="controls" title="Controls" width={224}>
+          <div className="flex flex-col gap-3 items-stretch">
+            <RadioRangeConfig />
+            <FeatureToggles />
+            <SOSButton />
+            <button
+              onClick={resetLayout}
+              className="font-mono text-[9px] text-white/25 hover:text-white/50 transition-colors text-center py-1"
+            >
+              ↺ Reset panel layout
+            </button>
+          </div>
+        </DraggablePanel>
       </div>
 
       {/* Mobile: boat list as horizontal scrolling chips */}
@@ -95,27 +152,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Map HTML overlays (offline indicator, attributions, border legend) */}
       <MapOverlays />
 
-      {/* Left: delay-tolerant networking panel */}
-      <div className="hidden md:block">
-        <DTNPanel />
-      </div>
-
-      {/* Right panels */}
-      <CellInfoPanel />
-      <SOSReceivedPanel />
-
-      {/* Bottom right controls */}
-      <div className="absolute bottom-8 right-4 z-[1000] flex flex-col gap-3 items-end">
-        <RadioRangeConfig />
-        <FeatureToggles />
+      {/* Mobile controls — compact stack */}
+      <div className="md:hidden absolute bottom-4 right-3 z-[1000] flex flex-col gap-2 items-end">
         <SOSButton />
       </div>
-
-      {/* Alert banners */}
-      <AlertBanner />
 
       {/* Persistent advisory disclaimer */}
       <DisclaimerBar />
@@ -123,10 +165,6 @@ export default function Home() {
       {/* Modals */}
       <HazardModal />
 
-      {/* Demo controller */}
-      <DemoController />
-
-      {/* AI voice narrator + guided cursor (active in Demo Mode) */}
       <Narrator />
       <GuidedCursor />
 

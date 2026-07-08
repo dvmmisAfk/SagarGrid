@@ -20,7 +20,7 @@ import {
   cellsMatch,
 } from '@/lib/h3utils';
 
-const MAX_CELLS = 600;
+const MAX_CELLS = 420;
 
 export default function GridLayer() {
   const map = useMap();
@@ -69,11 +69,7 @@ export default function GridLayer() {
 
     setCells(allCells.slice(0, MAX_CELLS));
     setZoom(map.getZoom());
-    const oceanCount = allCells.filter((idx) => {
-      const [lat, lng] = h3lib.cellToLatLng(idx);
-      return !isLandCell(lat, lng);
-    }).length;
-    setVisibleCellCount(oceanCount);
+    setVisibleCellCount(Math.min(allCells.length, MAX_CELLS));
     setGridResolution(resolution);
   }, [map, setVisibleCellCount, setGridResolution]);
 
@@ -81,7 +77,7 @@ export default function GridLayer() {
     updateGrid();
     const debounced = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(updateGrid, 120);
+      timerRef.current = setTimeout(updateGrid, 220);
     };
     map.on('moveend', debounced);
     map.on('zoomend', debounced);
@@ -253,10 +249,10 @@ export default function GridLayer() {
               },
             }}
           >
-            {(isHov || (isLand && zoom >= 10)) && (
+            {(isHov || (isLand && zoom >= 11)) && (
               <Tooltip
                 sticky={false}
-                permanent={isLand && zoom >= 10}
+                permanent={isLand && zoom >= 11}
                 direction="center"
                 className={isLand ? 'land-cell-tooltip' : 'cell-tooltip'}
               >

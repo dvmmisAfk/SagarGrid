@@ -26,7 +26,7 @@ export default function MapOverlays() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="absolute bottom-4 left-4 z-[1000]"
+            className="absolute bottom-4 right-[17rem] z-[999] md:right-[17rem]"
           >
             <div className="glass rounded-full px-3 py-1.5 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-alert-green" />

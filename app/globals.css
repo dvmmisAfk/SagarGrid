@@ -1,0 +1,243 @@
+/* ─── Fonts (must precede @tailwind / other rules) ──────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #050d1a;
+}
+
+/* ─── Leaflet overrides ──────────────────────────────────── */
+.leaflet-container {
+  background: #050d1a !important;
+  font-family: inherit;
+}
+.leaflet-tile-pane {
+  opacity: 0.8;
+}
+.leaflet-control-zoom {
+  display: none;
+}
+.leaflet-control-attribution {
+  background: rgba(5, 13, 26, 0.7) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 9px !important;
+}
+
+/* ─── Boat label tooltips ────────────────────────────────── */
+.boat-label {
+  background: rgba(5, 13, 26, 0.92) !important;
+  border: 1px solid rgba(0, 229, 255, 0.3) !important;
+  color: #fff !important;
+  font-family: 'Space Grotesk', system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  padding: 4px 10px !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(0, 229, 255, 0.15) !important;
+  letter-spacing: 0.02em !important;
+}
+.boat-label.boat-sos {
+  border-color: rgba(255, 59, 48, 0.8) !important;
+  box-shadow: 0 0 16px rgba(255, 59, 48, 0.5) !important;
+}
+.leaflet-tooltip-top::before {
+  border-top-color: rgba(0, 229, 255, 0.3) !important;
+}
+
+/* ─── Cell code tooltips ─────────────────────────────────── */
+.cell-tooltip {
+  background: rgba(5, 13, 26, 0.96) !important;
+  border: 1px solid rgba(0, 229, 255, 0.45) !important;
+  color: #00e5ff !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25) !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  letter-spacing: 0.06em !important;
+}
+.cell-tooltip::before {
+  display: none !important;
+}
+
+.land-cell-tooltip {
+  background: rgba(20, 28, 38, 0.96) !important;
+  border: 1px solid rgba(138, 148, 166, 0.45) !important;
+  color: #8a94a6 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+.land-cell-tooltip::before {
+  display: none !important;
+}
+
+.leaflet-interactive {
+  transition: fill-opacity 0.12s ease, stroke-opacity 0.12s ease;
+}
+
+/* ─── Glass panel base ───────────────────────────────────── */
+.glass {
+  background: rgba(13, 33, 55, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.glass-cyan {
+  background: rgba(13, 33, 55, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08) inset;
+}
+.glass-danger {
+  background: rgba(40, 10, 10, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 59, 48, 0.35);
+  box-shadow: 0 0 32px rgba(255, 59, 48, 0.12);
+}
+.glass-success {
+  background: rgba(5, 30, 15, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48, 209, 88, 0.35);
+  box-shadow: 0 0 32px rgba(48, 209, 88, 0.12);
+}
+
+/* ─── Data readout (like nautical instrument) ─────────────── */
+.data-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 229, 255, 0.6);
+}
+.data-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.04em;
+}
+.data-value-lg {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.cell-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: #00e5ff;
+  letter-spacing: 0.06em;
+  background: rgba(0, 229, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+}
+
+/* ─── Scrollbars ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* ─── Pulse animations for SOS ───────────────────────────── */
+@keyframes sos-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+@keyframes boat-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(255, 59, 48, 0);
+  }
+}
+@keyframes network-vignette {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Raw keyframes referenced by Leaflet divIcons */
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px #ff3b30;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 20px #ff3b30;
+    opacity: 0.7;
+  }
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Network offline vignette ───────────────────────────── */
+.network-offline-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(180, 30, 20, 0.18) 100%);
+  border: 3px solid rgba(255, 59, 48, 0.4);
+  animation: network-vignette 0.5s ease-out;
+  z-index: 999;
+}
+
+/* ─── Hex logo mark ──────────────────────────────────────── */
+@keyframes hex-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

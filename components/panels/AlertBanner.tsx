@@ -1,0 +1,68 @@
+'use client';
+
+import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useUIStore } from '@/store/uiStore';
+
+export default function AlertBanner() {
+  const { activeAlert, setActiveAlert } = useUIStore();
+
+  useEffect(() => {
+    if (!activeAlert) return;
+    const t = setTimeout(() => setActiveAlert(null), 7000);
+    return () => clearTimeout(t);
+  }, [activeAlert, setActiveAlert]);
+
+  const isBorder = activeAlert?.type === 'border';
+
+  return (
+    <AnimatePresence>
+      {activeAlert && (
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[1002] w-[480px] max-w-[calc(100vw-2rem)]"
+        >
+          <div
+            className={isBorder ? 'glass-danger' : 'glass'}
+            style={{
+              borderRadius: '16px',
+              padding: '16px 20px',
+              boxShadow: isBorder
+                ? '0 0 0 1px rgba(255,59,48,0.3), 0 8px 32px rgba(255,59,48,0.2)'
+                : '0 0 0 1px rgba(255,149,0,0.3), 0 8px 32px rgba(255,149,0,0.15)',
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 text-2xl mt-0.5">{isBorder ? '🚨' : '⚠️'}</div>
+              <div className="flex-1">
+                <div
+                  className="font-display font-bold text-sm mb-1"
+                  style={{ color: isBorder ? '#FF3B30' : '#FF9500' }}
+                >
+                  {isBorder ? 'Border Zone Warning' : 'Hazard Detected'}
+                </div>
+                <div className="font-mono text-xs text-white/70 leading-relaxed">
+                  {activeAlert.message}
+                </div>
+                <div className="font-mono text-[9px] text-white/25 mt-2">
+                  Advisory only — verify independently.
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 flex-shrink-0">
+                <button
+                  onClick={() => setActiveAlert(null)}
+                  className="text-[10px] font-mono px-3 py-1 rounded-full border border-white/20 text-white/60 hover:text-white transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
